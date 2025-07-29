@@ -1,8 +1,8 @@
 import React from 'react';
 
 export interface AchievementBadgeProps {
-  /** Total amount accumulated across all tasks */
-  totalAmount: number;
+  /** Total points accumulated across all tasks */
+  totalPoints: number;
   /** Number of consecutive days with at least one task */
   streak: number;
 }
@@ -11,10 +11,10 @@ export interface AchievementBadgeProps {
  * Determine which badge label to show based on the total money earned.
  * Returns null if no badge threshold has been reached.
  */
-function getBadgeLabel(amount: number): string | null {
-  if (amount >= 500) return 'Gold';
-  if (amount >= 200) return 'Silver';
-  if (amount >= 100) return 'Bronze';
+function getBadgeLabel(points: number): string | null {
+  if (points >= 100) return 'Gold';
+  if (points >= 50) return 'Silver';
+  if (points >= 20) return 'Bronze';
   return null;
 }
 
@@ -22,8 +22,8 @@ function getBadgeLabel(amount: number): string | null {
  * AchievementBadge shows a small visual indicator of a user's progress
  * in the form of a badge for earning milestones and a streak counter.
  */
-const AchievementBadge: React.FC<AchievementBadgeProps> = ({ totalAmount, streak }) => {
-  const badge = getBadgeLabel(totalAmount);
+const AchievementBadge: React.FC<AchievementBadgeProps> = ({ totalPoints, streak }) => {
+  const badge = getBadgeLabel(totalPoints);
   return (
     <div className="flex space-x-2 mt-2">
       {badge && (

@@ -34,7 +34,7 @@ const ProgressChart: React.FC<ProgressChartProps> = ({ tasks }) => {
       const label = day.toLocaleDateString(undefined, { weekday: 'short' });
       const total = tasks
         .filter((t) => t.timestamp.toDateString() === day.toDateString())
-        .reduce((sum, t) => sum + (t.amount || 0), 0);
+        .reduce((sum, t) => sum + (t.points || 0), 0);
       return { label, total };
     });
 

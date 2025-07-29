@@ -14,5 +14,5 @@ export interface Task {
   /** When the task was completed. Stored as a Date object for easy formatting. */
   timestamp: Date;
   /** Optional points earned from completing the task. Defaults to 0 if omitted. */
-  amount?: number;
+  points?: number;
 }

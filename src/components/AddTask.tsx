@@ -5,9 +5,9 @@ export interface AddTaskProps {
    * Callback invoked when the user submits a new task.
    *
    * @param name The name of the completed task.
-   * @param amount Points awarded for the task based on difficulty.
+   * @param points Points awarded for the task based on difficulty.
    */
-  onAdd: (name: string, amount?: number) => void;
+  onAdd: (name: string, points?: number) => void;
 }
 
 /**
