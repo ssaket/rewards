@@ -9,8 +9,8 @@ export interface TaskListProps {
 
 /**
  * TaskList renders a summary of completed tasks, including the count of
- * tasks completed today and the total amount of money earned. Each
- * task entry shows the name, completion time and amount earned.
+ * tasks completed today and the total points earned. Each
+ * task entry shows the name, completion time and points awarded.
 */
 const TaskList: React.FC<TaskListProps> = ({ tasks }) => {
   // Get today's date boundaries to compute tasks completed today
@@ -46,10 +46,8 @@ const TaskList: React.FC<TaskListProps> = ({ tasks }) => {
           <p className="text-2xl font-bold text-green-700">{tasksToday.length}</p>
         </div>
         <div>
-          <p className="text-lg font-semibold text-gray-700">Money Earned</p>
-          <p className="text-2xl font-bold text-green-700">
-            {totalAmountToday.toLocaleString(undefined, { style: 'currency', currency: 'USD' })}
-          </p>
+          <p className="text-lg font-semibold text-gray-700">Points Earned</p>
+          <p className="text-2xl font-bold text-green-700">{totalAmountToday}</p>
         </div>
       </div>
       <AchievementBadge totalAmount={totalAmount} streak={streak} />
@@ -73,7 +71,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks }) => {
               </div>
               {task.amount !== undefined && (
                 <span className="bg-green-200 text-green-800 text-sm font-semibold px-2 py-1 rounded-full">
-                  💰{task.amount.toLocaleString(undefined, { style: 'currency', currency: 'USD' })}
+                  ⭐ {task.amount} pts
                 </span>
               )}
             </li>

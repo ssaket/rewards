@@ -5,7 +5,7 @@ export interface AddTaskProps {
    * Callback invoked when the user submits a new task.
    *
    * @param name The name of the completed task.
-   * @param amount Optional money awarded for the task.
+   * @param amount Points awarded for the task based on difficulty.
    */
   onAdd: (name: string, amount?: number) => void;
 }
@@ -13,20 +13,21 @@ export interface AddTaskProps {
 /**
  * AddTask renders a button that opens a modal dialog for entering the
  * description of a completed task. The modal collects the task name
- * and optional amount, then passes that data back to the parent via
- * the onAdd callback.
+ * and difficulty level, then passes the appropriate point value back
+ * to the parent via the onAdd callback.
 */
 const AddTask: React.FC<AddTaskProps> = ({ onAdd }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [taskName, setTaskName] = useState('');
-  const [amount, setAmount] = useState<number | ''>('');
+  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('easy');
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (taskName.trim().length === 0) return;
-    onAdd(taskName.trim(), amount === '' ? undefined : Number(amount));
+    const points = difficulty === 'easy' ? 5 : difficulty === 'medium' ? 10 : 20;
+    onAdd(taskName.trim(), points);
     setTaskName('');
-    setAmount('');
+    setDifficulty('easy');
     setIsOpen(false);
   };
 
@@ -58,21 +59,19 @@ const AddTask: React.FC<AddTaskProps> = ({ onAdd }) => {
                 />
               </div>
               <div>
-                <label htmlFor="amount" className="block text-sm font-medium text-gray-600 mb-1">
-                  Amount Earned (optional)
+                <label htmlFor="difficulty" className="block text-sm font-medium text-gray-600 mb-1">
+                  Difficulty
                 </label>
-                <input
-                  id="amount"
-                  type="number"
-                  step="0.01"
+                <select
+                  id="difficulty"
                   className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-green-400"
-                  value={amount}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    const val = e.target.value;
-                    setAmount(val === '' ? '' : Number(val));
-                  }}
-                  placeholder="10.00"
-                />
+                  value={difficulty}
+                  onChange={(e) => setDifficulty(e.target.value as 'easy' | 'medium' | 'hard')}
+                >
+                  <option value="easy">Easy (5 pts)</option>
+                  <option value="medium">Medium (10 pts)</option>
+                  <option value="hard">Hard (20 pts)</option>
+                </select>
               </div>
               <div className="flex justify-end space-x-3 pt-2">
                 <button
