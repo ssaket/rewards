@@ -8,7 +8,7 @@ export interface ProgressChartProps {
 }
 
 /**
- * ProgressChart renders a small bar chart showing the total money
+ * ProgressChart renders a small bar chart showing the total points
  * earned each day over the last week. It uses D3 for scales and axes
  * but is otherwise a self-contained React component.
  */
@@ -82,7 +82,7 @@ const ProgressChart: React.FC<ProgressChartProps> = ({ tasks }) => {
   return (
     <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow-md p-4 mt-6">
       <h2 className="text-lg font-semibold text-gray-700 mb-2">
-        Money Earned This Week
+        Points Earned This Week
       </h2>
       <svg ref={svgRef} className="w-full h-48" />
     </div>
