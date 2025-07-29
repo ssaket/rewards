@@ -3,7 +3,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // Update with your repo name
-const repoName = 'task-reward-app'
+const repoName = 'rewards'
 
 export default defineConfig({
   base: `/${repoName}/`,
