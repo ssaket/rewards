@@ -3,10 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "homepage": "https://ssaket.github.io/task-reward-app",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "d3": "^7.9.0",
@@ -17,10 +20,12 @@
     "@types/d3": "^7.4.3",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.4.14",
     "postcss": "^8.4.24",
     "tailwindcss": "^3.3.3",
     "typescript": "^5.0.4",
-    "vite": "^4.4.9"
+    "vite": "^4.4.9",
+    "vite-plugin-gh-pages": "^1.0.1"
   }
 }
