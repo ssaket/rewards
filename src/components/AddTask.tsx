@@ -59,19 +59,33 @@ const AddTask: React.FC<AddTaskProps> = ({ onAdd }) => {
                 />
               </div>
               <div>
-                <label htmlFor="difficulty" className="block text-sm font-medium text-gray-600 mb-1">
-                  Difficulty
-                </label>
-                <select
-                  id="difficulty"
-                  className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-green-400"
-                  value={difficulty}
-                  onChange={(e) => setDifficulty(e.target.value as 'easy' | 'medium' | 'hard')}
-                >
-                  <option value="easy">Easy (5 pts)</option>
-                  <option value="medium">Medium (10 pts)</option>
-                  <option value="hard">Hard (20 pts)</option>
-                </select>
+                <span className="block text-sm font-medium text-gray-600 mb-1">Difficulty</span>
+                <div className="grid grid-cols-3 gap-2">
+                  {(
+                    [
+                      { level: 'easy', label: 'Easy', points: 5 },
+                      { level: 'medium', label: 'Medium', points: 10 },
+                      { level: 'hard', label: 'Hard', points: 20 },
+                    ] as const
+                  ).map((opt) => (
+                    <label key={opt.level} className="cursor-pointer">
+                      <input
+                        type="radio"
+                        name="difficulty"
+                        value={opt.level}
+                        className="sr-only peer"
+                        checked={difficulty === opt.level}
+                        onChange={() => setDifficulty(opt.level)}
+                      />
+                      <div
+                        className="rounded-md border border-gray-300 p-2 text-center text-sm peer-checked:bg-green-600 peer-checked:text-white peer-checked:ring-2 peer-checked:ring-green-400"
+                      >
+                        <p className="font-medium">{opt.label}</p>
+                        <p className="text-xs">({opt.points} pts)</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
               </div>
               <div className="flex justify-end space-x-3 pt-2">
                 <button
