@@ -3,6 +3,7 @@ import { Task } from './types';
 import AddTask from './components/AddTask';
 import TaskList from './components/TaskList';
 import BackgroundAnimation from './components/BackgroundAnimation';
+import ProgressChart from './components/ProgressChart';
 
 /**
  * Generates a pseudo-unique identifier string. We avoid importing heavy
@@ -71,6 +72,7 @@ const App: React.FC = () => {
         </h1>
         <AddTask onAdd={handleAddTask} />
         <TaskList tasks={tasks} />
+        <ProgressChart tasks={tasks} />
       </div>
     </div>
   );
