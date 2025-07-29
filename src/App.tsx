@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Task } from './types';
 import AddTask from './components/AddTask';
 import TaskList from './components/TaskList';
@@ -23,6 +23,27 @@ function generateId(): string {
  */
 const App: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
+
+  // Load any persisted tasks on initial mount
+  useEffect(() => {
+    const stored = localStorage.getItem('tasks');
+    if (stored) {
+      try {
+        const parsed: Task[] = JSON.parse(stored).map((t: any) => ({
+          ...t,
+          timestamp: new Date(t.timestamp),
+        }));
+        setTasks(parsed);
+      } catch (err) {
+        console.error('Failed to parse tasks from localStorage', err);
+      }
+    }
+  }, []);
+
+  // Persist tasks whenever they change
+  useEffect(() => {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }, [tasks]);
 
   /**
    * Handle the addition of a new task by creating a Task object and
