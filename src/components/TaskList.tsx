@@ -9,9 +9,9 @@ export interface TaskListProps {
 
 /**
  * TaskList renders a summary of completed tasks, including the count of
- * tasks completed today and the total number of points earned. Each
- * task entry shows the name, completion time and points earned.
- */
+ * tasks completed today and the total amount of money earned. Each
+ * task entry shows the name, completion time and amount earned.
+*/
 const TaskList: React.FC<TaskListProps> = ({ tasks }) => {
   // Get today's date boundaries to compute tasks completed today
   const startOfDay = new Date();
@@ -19,10 +19,10 @@ const TaskList: React.FC<TaskListProps> = ({ tasks }) => {
   const endOfDay = new Date();
   endOfDay.setHours(23, 59, 59, 999);
   const tasksToday = tasks.filter((task: Task) => task.timestamp >= startOfDay && task.timestamp <= endOfDay);
-  const totalPointsToday = tasksToday.reduce((sum: number, task: Task) => sum + (task.points || 0), 0);
+  const totalAmountToday = tasksToday.reduce((sum: number, task: Task) => sum + (task.amount || 0), 0);
 
-  // Total points across all tasks for badge milestones
-  const totalPoints = tasks.reduce((sum: number, task: Task) => sum + (task.points || 0), 0);
+  // Total amount across all tasks for badge milestones
+  const totalAmount = tasks.reduce((sum: number, task: Task) => sum + (task.amount || 0), 0);
 
   // Calculate the current daily streak
   const calculateStreak = (): number => {
@@ -46,11 +46,13 @@ const TaskList: React.FC<TaskListProps> = ({ tasks }) => {
           <p className="text-2xl font-bold text-green-700">{tasksToday.length}</p>
         </div>
         <div>
-          <p className="text-lg font-semibold text-gray-700">Points</p>
-          <p className="text-2xl font-bold text-green-700">{totalPointsToday}</p>
+          <p className="text-lg font-semibold text-gray-700">Money Earned</p>
+          <p className="text-2xl font-bold text-green-700">
+            {totalAmountToday.toLocaleString(undefined, { style: 'currency', currency: 'USD' })}
+          </p>
         </div>
       </div>
-      <AchievementBadge totalPoints={totalPoints} streak={streak} />
+      <AchievementBadge totalAmount={totalAmount} streak={streak} />
       <ul className="space-y-2">
         {tasks
           .slice()
@@ -69,9 +71,9 @@ const TaskList: React.FC<TaskListProps> = ({ tasks }) => {
                   })}
                 </p>
               </div>
-              {task.points !== undefined && (
+              {task.amount !== undefined && (
                 <span className="bg-green-200 text-green-800 text-sm font-semibold px-2 py-1 rounded-full">
-                  +{task.points}
+                  💰{task.amount.toLocaleString(undefined, { style: 'currency', currency: 'USD' })}
                 </span>
               )}
             </li>
