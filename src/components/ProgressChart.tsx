@@ -8,7 +8,7 @@ export interface ProgressChartProps {
 }
 
 /**
- * ProgressChart renders a small bar chart showing the total points
+ * ProgressChart renders a small bar chart showing the total money
  * earned each day over the last week. It uses D3 for scales and axes
  * but is otherwise a self-contained React component.
  */
@@ -34,7 +34,7 @@ const ProgressChart: React.FC<ProgressChartProps> = ({ tasks }) => {
       const label = day.toLocaleDateString(undefined, { weekday: 'short' });
       const total = tasks
         .filter((t) => t.timestamp.toDateString() === day.toDateString())
-        .reduce((sum, t) => sum + (t.points || 0), 0);
+        .reduce((sum, t) => sum + (t.amount || 0), 0);
       return { label, total };
     });
 
@@ -82,7 +82,7 @@ const ProgressChart: React.FC<ProgressChartProps> = ({ tasks }) => {
   return (
     <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow-md p-4 mt-6">
       <h2 className="text-lg font-semibold text-gray-700 mb-2">
-        Points Earned This Week
+        Money Earned This Week
       </h2>
       <svg ref={svgRef} className="w-full h-48" />
     </div>

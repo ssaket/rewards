@@ -5,28 +5,28 @@ export interface AddTaskProps {
    * Callback invoked when the user submits a new task.
    *
    * @param name The name of the completed task.
-   * @param points Optional points awarded for the task.
+   * @param amount Optional money awarded for the task.
    */
-  onAdd: (name: string, points?: number) => void;
+  onAdd: (name: string, amount?: number) => void;
 }
 
 /**
  * AddTask renders a button that opens a modal dialog for entering the
  * description of a completed task. The modal collects the task name
- * and optional points, then passes that data back to the parent via
+ * and optional amount, then passes that data back to the parent via
  * the onAdd callback.
- */
+*/
 const AddTask: React.FC<AddTaskProps> = ({ onAdd }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [taskName, setTaskName] = useState('');
-  const [points, setPoints] = useState<number | ''>('');
+  const [amount, setAmount] = useState<number | ''>('');
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (taskName.trim().length === 0) return;
-    onAdd(taskName.trim(), points === '' ? undefined : Number(points));
+    onAdd(taskName.trim(), amount === '' ? undefined : Number(amount));
     setTaskName('');
-    setPoints('');
+    setAmount('');
     setIsOpen(false);
   };
 
@@ -58,19 +58,20 @@ const AddTask: React.FC<AddTaskProps> = ({ onAdd }) => {
                 />
               </div>
               <div>
-                <label htmlFor="points" className="block text-sm font-medium text-gray-600 mb-1">
-                  Points (optional)
+                <label htmlFor="amount" className="block text-sm font-medium text-gray-600 mb-1">
+                  Amount Earned (optional)
                 </label>
                 <input
-                  id="points"
+                  id="amount"
                   type="number"
+                  step="0.01"
                   className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-green-400"
-                  value={points}
+                  value={amount}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     const val = e.target.value;
-                    setPoints(val === '' ? '' : Number(val));
+                    setAmount(val === '' ? '' : Number(val));
                   }}
-                  placeholder="10"
+                  placeholder="10.00"
                 />
               </div>
               <div className="flex justify-end space-x-3 pt-2">
