@@ -51,12 +51,12 @@ const App: React.FC = () => {
    * updating state. Note that the timestamp is always set to the
    * current date to reflect the time of completion.
    */
-  const handleAddTask = (name: string, amount?: number) => {
+  const handleAddTask = (name: string, points?: number) => {
     const newTask: Task = {
       id: generateId(),
       name,
       timestamp: new Date(),
-      amount,
+      points,
     };
     setTasks((prev: Task[]) => [...prev, newTask]);
   };

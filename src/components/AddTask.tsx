@@ -81,7 +81,7 @@ const AddTask: React.FC<AddTaskProps> = ({ onAdd }) => {
                         className="rounded-md border border-gray-300 p-2 text-center text-sm peer-checked:bg-green-600 peer-checked:text-white peer-checked:ring-2 peer-checked:ring-green-400"
                       >
                         <p className="font-medium">{opt.label}</p>
-                        <p className="text-xs">({opt.points} pts)</p>
+                        <p className="text-xs">({opt.points} coins)</p>
                       </div>
                     </label>
                   ))}

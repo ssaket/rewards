@@ -46,7 +46,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks }) => {
           <p className="text-2xl font-bold text-green-700">{tasksToday.length}</p>
         </div>
         <div>
-          <p className="text-lg font-semibold text-gray-700">Points Earned</p>
+          <p className="text-lg font-semibold text-gray-700">Coins Earned</p>
           <p className="text-2xl font-bold text-green-700">{totalPointsToday}</p>
         </div>
       </div>
