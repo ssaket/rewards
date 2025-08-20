@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { PlanningTask } from '../types';
 
 export interface AddTaskProps {
   /**
@@ -8,6 +9,10 @@ export interface AddTaskProps {
    * @param points Points awarded for the task based on difficulty.
    */
   onAdd: (name: string, points?: number) => void;
+  /**
+   * List of planning tasks to provide autocomplete suggestions.
+   */
+  planningTasks?: PlanningTask[];
 }
 
 /**
@@ -16,10 +21,21 @@ export interface AddTaskProps {
  * and difficulty level, then passes the appropriate point value back
  * to the parent via the onAdd callback.
 */
-const AddTask: React.FC<AddTaskProps> = ({ onAdd }) => {
+const AddTask: React.FC<AddTaskProps> = ({ onAdd, planningTasks = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [taskName, setTaskName] = useState('');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('easy');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Filter planning tasks based on current input
+  const suggestions = useMemo(() => {
+    if (!taskName.trim()) return [];
+    return planningTasks
+      .filter(task => 
+        task.name.toLowerCase().includes(taskName.toLowerCase())
+      )
+      .slice(0, 5); // Limit to 5 suggestions
+  }, [taskName, planningTasks]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -28,7 +44,24 @@ const AddTask: React.FC<AddTaskProps> = ({ onAdd }) => {
     onAdd(taskName.trim(), points);
     setTaskName('');
     setDifficulty('easy');
+    setShowSuggestions(false);
     setIsOpen(false);
+  };
+
+  const handleSuggestionClick = (suggestion: PlanningTask) => {
+    setTaskName(suggestion.name);
+    setShowSuggestions(false);
+  };
+
+  const handleInputFocus = () => {
+    if (suggestions.length > 0) {
+      setShowSuggestions(true);
+    }
+  };
+
+  const handleInputBlur = () => {
+    // Delay hiding suggestions to allow click events
+    setTimeout(() => setShowSuggestions(false), 200);
   };
 
   return (
@@ -44,7 +77,7 @@ const AddTask: React.FC<AddTaskProps> = ({ onAdd }) => {
           <div className="bg-white rounded-lg shadow-xl p-6 w-80 max-w-xs animate-fade-in">
             <h2 className="text-xl font-bold mb-4 text-gray-700">Add a Task</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
+              <div className="relative">
                 <label htmlFor="taskName" className="block text-sm font-medium text-gray-600 mb-1">
                   Task Name
                 </label>
@@ -53,10 +86,40 @@ const AddTask: React.FC<AddTaskProps> = ({ onAdd }) => {
                   type="text"
                   className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-green-400"
                   value={taskName}
-                  onChange={(e) => setTaskName(e.target.value)}
+                  onChange={(e) => {
+                    setTaskName(e.target.value);
+                    setShowSuggestions(e.target.value.trim().length > 0 && suggestions.length > 0);
+                  }}
+                  onFocus={handleInputFocus}
+                  onBlur={handleInputBlur}
                   placeholder="e.g. Solved coding problem"
                   required
                 />
+                
+                {/* Autocomplete Suggestions */}
+                {showSuggestions && suggestions.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto">
+                    {suggestions.map((suggestion) => (
+                      <button
+                        key={suggestion.id}
+                        type="button"
+                        className="w-full text-left px-3 py-2 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none border-b border-gray-100 last:border-b-0"
+                        onClick={() => handleSuggestionClick(suggestion)}
+                      >
+                        <div className="font-medium text-gray-800">{suggestion.name}</div>
+                        <div className="text-xs text-gray-500 capitalize">
+                          {suggestion.priority} priority • {suggestion.createdAt.toLocaleDateString()}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                {planningTasks.length > 0 && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    💡 Start typing to see suggestions from your planning tasks
+                  </p>
+                )}
               </div>
               <div>
                 <span className="block text-sm font-medium text-gray-600 mb-1">Difficulty</span>

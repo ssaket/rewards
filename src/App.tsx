@@ -152,7 +152,7 @@ const App: React.FC = () => {
         {/* Tab Content */}
         {activeTab === 'tasks' ? (
           <div className="w-full max-w-xl mx-auto">
-            <AddTask onAdd={handleAddTask} />
+            <AddTask onAdd={handleAddTask} planningTasks={planningTasks} />
             <TaskList tasks={tasks} />
             <ProgressChart tasks={tasks} />
           </div>
