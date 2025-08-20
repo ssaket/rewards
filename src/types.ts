@@ -16,3 +16,25 @@ export interface Task {
   /** Optional points earned from completing the task. Defaults to 0 if omitted. */
   points?: number;
 }
+
+/**
+ * Defines the priority levels for planning tasks.
+ */
+export type Priority = 'high' | 'medium' | 'low';
+
+/**
+ * Defines the structure of a planning task item for the planning tab.
+ *
+ * Planning tasks are different from completed tasks - they represent
+ * future work that needs to be organized and prioritized.
+ */
+export interface PlanningTask {
+  /** Unique identifier for the planning task. */
+  id: string;
+  /** The descriptive name of the task to be completed. */
+  name: string;
+  /** Priority level of the task. */
+  priority: Priority;
+  /** When the planning task was created. */
+  createdAt: Date;
+}
