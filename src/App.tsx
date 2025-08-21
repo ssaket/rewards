@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Task, PlanningTask, Priority } from './types';
+import { Task, PlanningTask, Priority, TaskReminder } from './types';
 import AddTask from './components/AddTask';
 import TaskList from './components/TaskList';
 import BackgroundAnimation from './components/BackgroundAnimation';
@@ -14,6 +14,69 @@ import PlanningTab from './components/PlanningTab';
  */
 function generateId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
+/**
+ * Request notification permission if not already granted.
+ */
+async function requestNotificationPermission(): Promise<boolean> {
+  if (!('Notification' in window)) {
+    console.warn('This browser does not support desktop notifications');
+    return false;
+  }
+
+  if (Notification.permission === 'granted') {
+    return true;
+  }
+
+  if (Notification.permission === 'denied') {
+    return false;
+  }
+
+  const permission = await Notification.requestPermission();
+  return permission === 'granted';
+}
+
+/**
+ * Show a desktop notification for a task reminder.
+ */
+function showTaskNotification(taskName: string): void {
+  if (Notification.permission === 'granted') {
+    new Notification('Task Reminder', {
+      body: `Don't forget to work on: ${taskName}`,
+      icon: '/favicon.ico', // You can customize this
+      tag: 'task-reminder',
+    });
+  }
+}
+
+/**
+ * Schedule a reminder notification for a task.
+ */
+function scheduleReminder(task: PlanningTask): number | undefined {
+  if (!task.reminder?.enabled) return undefined;
+
+  let delayMs: number;
+  
+  switch (task.reminder.option) {
+    case '1hr':
+      delayMs = 60 * 60 * 1000; // 1 hour in milliseconds
+      break;
+    case '2hr':
+      delayMs = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+      break;
+    case 'custom':
+      delayMs = (task.reminder.customMinutes || 30) * 60 * 1000; // custom minutes in milliseconds
+      break;
+    default:
+      return undefined;
+  }
+
+  const timeoutId = window.setTimeout(() => {
+    showTaskNotification(task.name);
+  }, delayMs);
+
+  return timeoutId;
 }
 
 /**
@@ -67,6 +130,47 @@ const App: React.FC = () => {
     localStorage.setItem('planningTasks', JSON.stringify(planningTasks));
   }, [planningTasks]);
 
+  // Restore reminders when the app loads
+  useEffect(() => {
+    planningTasks.forEach(task => {
+      if (task.reminder?.enabled && !task.reminder.timeoutId) {
+        // Calculate remaining time since task was created
+        const timeElapsed = Date.now() - task.createdAt.getTime();
+        let totalDelayMs: number;
+        
+        switch (task.reminder.option) {
+          case '1hr':
+            totalDelayMs = 60 * 60 * 1000;
+            break;
+          case '2hr':
+            totalDelayMs = 2 * 60 * 60 * 1000;
+            break;
+          case 'custom':
+            totalDelayMs = (task.reminder.customMinutes || 30) * 60 * 1000;
+            break;
+          default:
+            return;
+        }
+        
+        const remainingDelayMs = totalDelayMs - timeElapsed;
+        
+        // Only schedule if reminder hasn't already passed
+        if (remainingDelayMs > 0) {
+          const timeoutId = window.setTimeout(() => {
+            showTaskNotification(task.name);
+          }, remainingDelayMs);
+          
+          // Update the task with the timeout ID
+          setPlanningTasks(prev => prev.map(t => 
+            t.id === task.id && t.reminder ? 
+              { ...t, reminder: { ...t.reminder, timeoutId } } : 
+              t
+          ));
+        }
+      }
+    });
+  }, [planningTasks.length]); // Only run when tasks are added/removed
+
   /**
    * Handle the addition of a new task by creating a Task object and
    * updating state. Note that the timestamp is always set to the
@@ -85,13 +189,32 @@ const App: React.FC = () => {
   /**
    * Handle the addition of a new planning task.
    */
-  const handleAddPlanningTask = (name: string) => {
+  const handleAddPlanningTask = async (name: string, reminder?: TaskReminder) => {
     const newPlanningTask: PlanningTask = {
       id: generateId(),
       name,
       priority: 'low', // Default to low priority
       createdAt: new Date(),
+      reminder,
     };
+
+    // If reminder is enabled, request permission and schedule it
+    if (reminder?.enabled) {
+      const hasPermission = await requestNotificationPermission();
+      if (hasPermission) {
+        const timeoutId = scheduleReminder(newPlanningTask);
+        if (timeoutId && newPlanningTask.reminder) {
+          newPlanningTask.reminder.timeoutId = timeoutId;
+        }
+      } else {
+        // If permission denied, disable the reminder
+        if (newPlanningTask.reminder) {
+          newPlanningTask.reminder.enabled = false;
+        }
+        alert('Notification permission denied. Reminder has been disabled for this task.');
+      }
+    }
+
     setPlanningTasks((prev: PlanningTask[]) => [...prev, newPlanningTask]);
   };
 
@@ -110,7 +233,16 @@ const App: React.FC = () => {
    * Handle deleting a planning task.
    */
   const handleDeletePlanningTask = (taskId: string) => {
-    setPlanningTasks((prev: PlanningTask[]) => prev.filter((task) => task.id !== taskId));
+    setPlanningTasks((prev: PlanningTask[]) => {
+      const taskToDelete = prev.find(task => task.id === taskId);
+      
+      // Clear any active reminder timeout
+      if (taskToDelete?.reminder?.timeoutId) {
+        clearTimeout(taskToDelete.reminder.timeoutId);
+      }
+      
+      return prev.filter((task) => task.id !== taskId);
+    });
   };
 
   return (

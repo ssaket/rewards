@@ -23,6 +23,25 @@ export interface Task {
 export type Priority = 'high' | 'medium' | 'low';
 
 /**
+ * Reminder options for planning tasks.
+ */
+export type ReminderOption = '1hr' | '2hr' | 'custom';
+
+/**
+ * Reminder configuration for a planning task.
+ */
+export interface TaskReminder {
+  /** Whether reminder is enabled. */
+  enabled: boolean;
+  /** Type of reminder (1hr, 2hr, custom). */
+  option: ReminderOption;
+  /** Custom time in minutes (only used when option is 'custom'). */
+  customMinutes?: number;
+  /** Timeout ID for scheduled notification (used internally). */
+  timeoutId?: number;
+}
+
+/**
  * Defines the structure of a planning task item for the planning tab.
  *
  * Planning tasks are different from completed tasks - they represent
@@ -37,4 +56,6 @@ export interface PlanningTask {
   priority: Priority;
   /** When the planning task was created. */
   createdAt: Date;
+  /** Optional reminder configuration for the task. */
+  reminder?: TaskReminder;
 }

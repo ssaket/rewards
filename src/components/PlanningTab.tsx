@@ -1,11 +1,11 @@
 import React, { useState, useRef } from 'react';
-import { PlanningTask, Priority } from '../types';
+import { PlanningTask, Priority, ReminderOption, TaskReminder } from '../types';
 
 export interface PlanningTabProps {
   /** List of planning tasks to display and organize. */
   planningTasks: PlanningTask[];
   /** Callback to add a new planning task. */
-  onAddTask: (name: string) => void;
+  onAddTask: (name: string, reminder?: TaskReminder) => void;
   /** Callback to update a task's priority (for drag and drop). */
   onUpdatePriority: (taskId: string, newPriority: Priority) => void;
   /** Callback to delete a planning task. */
@@ -26,6 +26,11 @@ const PlanningTab: React.FC<PlanningTabProps> = ({
   const [newTaskName, setNewTaskName] = useState('');
   const [draggedTask, setDraggedTask] = useState<PlanningTask | null>(null);
   const [dragOverPriority, setDragOverPriority] = useState<Priority | null>(null);
+  
+  // Reminder form state
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [reminderOption, setReminderOption] = useState<ReminderOption>('1hr');
+  const [customMinutes, setCustomMinutes] = useState(30);
 
   const priorities: { level: Priority; label: string; color: string }[] = [
     { level: 'high', label: 'High Priority', color: 'bg-red-100 border-red-300' },
@@ -36,8 +41,17 @@ const PlanningTab: React.FC<PlanningTabProps> = ({
   const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault();
     if (newTaskName.trim()) {
-      onAddTask(newTaskName.trim());
+      const reminder: TaskReminder | undefined = reminderEnabled ? {
+        enabled: true,
+        option: reminderOption,
+        customMinutes: reminderOption === 'custom' ? customMinutes : undefined,
+      } : undefined;
+      
+      onAddTask(newTaskName.trim(), reminder);
       setNewTaskName('');
+      setReminderEnabled(false);
+      setReminderOption('1hr');
+      setCustomMinutes(30);
     }
   };
 
@@ -87,21 +101,95 @@ const PlanningTab: React.FC<PlanningTabProps> = ({
       {/* Add Task Form */}
       <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow-md p-6">
         <h2 className="text-xl font-bold mb-4 text-gray-700">Add Planning Task</h2>
-        <form onSubmit={handleAddTask} className="flex gap-3">
-          <input
-            type="text"
-            value={newTaskName}
-            onChange={(e) => setNewTaskName(e.target.value)}
-            placeholder="Enter task to plan..."
-            className="flex-1 border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            required
-          />
-          <button
-            type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-semibold transition-colors"
-          >
-            Add Task
-          </button>
+        <form onSubmit={handleAddTask} className="space-y-4">
+          <div className="flex gap-3">
+            <input
+              type="text"
+              value={newTaskName}
+              onChange={(e) => setNewTaskName(e.target.value)}
+              placeholder="Enter task to plan..."
+              className="flex-1 border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              required
+            />
+            <button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-semibold transition-colors"
+            >
+              Add Task
+            </button>
+          </div>
+          
+          {/* Reminder Options */}
+          <div className="border-t pt-4">
+            <div className="flex items-center gap-3 mb-3">
+              <input
+                type="checkbox"
+                id="reminder-enabled"
+                checked={reminderEnabled}
+                onChange={(e) => setReminderEnabled(e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              />
+              <label htmlFor="reminder-enabled" className="text-sm font-medium text-gray-700">
+                🔔 Set reminder for this task
+              </label>
+            </div>
+            
+            {reminderEnabled && (
+              <div className="ml-7 space-y-3">
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="reminderOption"
+                      value="1hr"
+                      checked={reminderOption === '1hr'}
+                      onChange={(e) => setReminderOption(e.target.value as ReminderOption)}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 focus:ring-2"
+                    />
+                    <span className="text-sm text-gray-600">1 hour</span>
+                  </label>
+                  
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="reminderOption"
+                      value="2hr"
+                      checked={reminderOption === '2hr'}
+                      onChange={(e) => setReminderOption(e.target.value as ReminderOption)}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 focus:ring-2"
+                    />
+                    <span className="text-sm text-gray-600">2 hours</span>
+                  </label>
+                  
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="reminderOption"
+                      value="custom"
+                      checked={reminderOption === 'custom'}
+                      onChange={(e) => setReminderOption(e.target.value as ReminderOption)}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 focus:ring-2"
+                    />
+                    <span className="text-sm text-gray-600">Custom</span>
+                  </label>
+                </div>
+                
+                {reminderOption === 'custom' && (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      max="1440"
+                      value={customMinutes}
+                      onChange={(e) => setCustomMinutes(parseInt(e.target.value) || 30)}
+                      className="w-20 border border-gray-300 rounded-md p-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    />
+                    <span className="text-sm text-gray-600">minutes</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </form>
       </div>
 
@@ -137,9 +225,21 @@ const PlanningTab: React.FC<PlanningTabProps> = ({
                     className="bg-white/80 backdrop-blur-sm rounded-md p-3 shadow-sm cursor-move hover:shadow-md transition-all duration-200 transform hover:scale-[1.02] group"
                   >
                     <div className="flex justify-between items-start">
-                      <p className="font-medium text-gray-800 flex-1 mr-2">
-                        {task.name}
-                      </p>
+                      <div className="flex-1 mr-2">
+                        <p className="font-medium text-gray-800 flex items-center gap-1">
+                          {task.reminder?.enabled && (
+                            <span className="text-blue-500" title="Reminder set">🔔</span>
+                          )}
+                          {task.name}
+                        </p>
+                        {task.reminder?.enabled && (
+                          <p className="text-xs text-blue-600 mt-1">
+                            Reminder: {task.reminder.option === 'custom' 
+                              ? `${task.reminder.customMinutes}min` 
+                              : task.reminder.option}
+                          </p>
+                        )}
+                      </div>
                       <button
                         onClick={() => onDeleteTask(task.id)}
                         className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-all duration-200 ml-2"
