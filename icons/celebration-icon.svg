@@ -1,0 +1,41 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with gradient -->
+  <defs>
+    <linearGradient id="celebrationGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F59E0B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D97706;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="trophyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FCD34D;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F59E0B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="128" cy="128" r="120" fill="url(#celebrationGradient)" stroke="#B45309" stroke-width="4"/>
+  
+  <!-- Trophy -->
+  <ellipse cx="128" cy="180" rx="40" ry="12" fill="#92400E"/>
+  <rect x="120" y="160" width="16" height="20" fill="#92400E"/>
+  
+  <!-- Trophy cup -->
+  <path d="M90 120 Q90 100 110 100 L146 100 Q166 100 166 120 L166 140 Q166 160 146 160 L110 160 Q90 160 90 140 Z" fill="url(#trophyGradient)" stroke="#B45309" stroke-width="2"/>
+  
+  <!-- Trophy handles -->
+  <ellipse cx="75" cy="125" rx="8" ry="15" fill="none" stroke="#B45309" stroke-width="3"/>
+  <ellipse cx="181" cy="125" rx="8" ry="15" fill="none" stroke="#B45309" stroke-width="3"/>
+  
+  <!-- Confetti -->
+  <rect x="60" y="60" width="8" height="8" fill="#EF4444" transform="rotate(45 64 64)"/>
+  <rect x="180" y="70" width="6" height="6" fill="#3B82F6" transform="rotate(30 183 73)"/>
+  <rect x="200" y="100" width="8" height="8" fill="#10B981" transform="rotate(60 204 104)"/>
+  <rect x="50" y="110" width="6" height="6" fill="#8B5CF6" transform="rotate(15 53 113)"/>
+  <rect x="190" y="40" width="8" height="8" fill="#F59E0B" transform="rotate(75 194 44)"/>
+  <rect x="40" y="180" width="6" height="6" fill="#EF4444" transform="rotate(45 43 183)"/>
+  <rect x="200" y="180" width="8" height="8" fill="#3B82F6" transform="rotate(30 204 184)"/>
+  
+  <!-- Stars -->
+  <path d="M100 50 L102 56 L108 56 L103 60 L105 66 L100 62 L95 66 L97 60 L92 56 L98 56 Z" fill="#FCD34D"/>
+  <path d="M160 45 L161 49 L165 49 L162 52 L163 56 L160 54 L157 56 L158 52 L155 49 L159 49 Z" fill="#FCD34D"/>
+  <path d="M210 130 L212 136 L218 136 L213 140 L215 146 L210 142 L205 146 L207 140 L202 136 L208 136 Z" fill="#FCD34D"/>
+</svg>
