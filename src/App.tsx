@@ -5,6 +5,8 @@ import TaskList from './components/TaskList';
 import BackgroundAnimation from './components/BackgroundAnimation';
 import ProgressChart from './components/ProgressChart';
 import PlanningTab from './components/PlanningTab';
+import NotificationPermissionPrompt from './components/NotificationPermissionPrompt';
+import NotificationService from './services/notificationService';
 
 /**
  * Generates a pseudo-unique identifier string. We avoid importing heavy
@@ -17,41 +19,7 @@ function generateId(): string {
 }
 
 /**
- * Request notification permission if not already granted.
- */
-async function requestNotificationPermission(): Promise<boolean> {
-  if (!('Notification' in window)) {
-    console.warn('This browser does not support desktop notifications');
-    return false;
-  }
-
-  if (Notification.permission === 'granted') {
-    return true;
-  }
-
-  if (Notification.permission === 'denied') {
-    return false;
-  }
-
-  const permission = await Notification.requestPermission();
-  return permission === 'granted';
-}
-
-/**
- * Show a desktop notification for a task reminder.
- */
-function showTaskNotification(taskName: string): void {
-  if (Notification.permission === 'granted') {
-    new Notification('Task Reminder', {
-      body: `Don't forget to work on: ${taskName}`,
-      icon: '/favicon.ico', // You can customize this
-      tag: 'task-reminder',
-    });
-  }
-}
-
-/**
- * Schedule a reminder notification for a task.
+ * Schedule a reminder notification for a task using the enhanced notification service.
  */
 function scheduleReminder(task: PlanningTask): number | undefined {
   if (!task.reminder?.enabled) return undefined;
@@ -73,7 +41,7 @@ function scheduleReminder(task: PlanningTask): number | undefined {
   }
 
   const timeoutId = window.setTimeout(() => {
-    showTaskNotification(task.name);
+    NotificationService.showTaskReminder(task.name, task.id);
   }, delayMs);
 
   return timeoutId;
@@ -90,6 +58,8 @@ const App: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [planningTasks, setPlanningTasks] = useState<PlanningTask[]>([]);
   const [activeTab, setActiveTab] = useState<'tasks' | 'planning'>('tasks');
+  const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
+  const [pendingTaskForNotification, setPendingTaskForNotification] = useState<string | null>(null);
 
   // Load any persisted tasks on initial mount
   useEffect(() => {
@@ -157,7 +127,7 @@ const App: React.FC = () => {
         // Only schedule if reminder hasn't already passed
         if (remainingDelayMs > 0) {
           const timeoutId = window.setTimeout(() => {
-            showTaskNotification(task.name);
+            NotificationService.showTaskReminder(task.name, task.id);
           }, remainingDelayMs);
           
           // Update the task with the timeout ID
@@ -184,49 +154,11 @@ const App: React.FC = () => {
       points,
     };
     setTasks((prev: Task[]) => [...prev, newTask]);
-  };
 
-  /**
-   * Handle the addition of a new planning task.
-   */
-  const handleAddPlanningTask = async (name: string, reminder?: TaskReminder) => {
-    const newPlanningTask: PlanningTask = {
-      id: generateId(),
-      name,
-      priority: 'low', // Default to low priority
-      createdAt: new Date(),
-      reminder,
-    };
-
-    // If reminder is enabled, request permission and schedule it
-    if (reminder?.enabled) {
-      const hasPermission = await requestNotificationPermission();
-      if (hasPermission) {
-        const timeoutId = scheduleReminder(newPlanningTask);
-        if (timeoutId && newPlanningTask.reminder) {
-          newPlanningTask.reminder.timeoutId = timeoutId;
-        }
-      } else {
-        // If permission denied, disable the reminder
-        if (newPlanningTask.reminder) {
-          newPlanningTask.reminder.enabled = false;
-        }
-        alert('Notification permission denied. Reminder has been disabled for this task.');
-      }
+    // Show celebration notification for task completion
+    if (points && NotificationService.getPermissionStatus() === 'granted') {
+      NotificationService.showTaskComplete(name, points);
     }
-
-    setPlanningTasks((prev: PlanningTask[]) => [...prev, newPlanningTask]);
-  };
-
-  /**
-   * Handle updating a planning task's priority (for drag and drop).
-   */
-  const handleUpdatePlanningTaskPriority = (taskId: string, newPriority: Priority) => {
-    setPlanningTasks((prev: PlanningTask[]) =>
-      prev.map((task) =>
-        task.id === taskId ? { ...task, priority: newPriority } : task
-      )
-    );
   };
 
   /**
@@ -245,10 +177,116 @@ const App: React.FC = () => {
     });
   };
 
+  // Set up notification event listeners
+  useEffect(() => {
+    const handleTaskComplete = (event: CustomEvent) => {
+      const { taskId, taskName } = event.detail;
+      // Find and complete the task from planning
+      const taskToComplete = planningTasks.find(task => task.id === taskId);
+      if (taskToComplete) {
+        handleDeletePlanningTask(taskId);
+        handleAddTask(taskName, 10); // Default to medium points
+      }
+    };
+
+    const handleSnooze = (event: CustomEvent) => {
+      const { taskId } = event.detail;
+      // Reschedule reminder for 15 minutes
+      const task = planningTasks.find(t => t.id === taskId);
+      if (task && task.reminder) {
+        const timeoutId = window.setTimeout(() => {
+          NotificationService.showTaskReminder(task.name, task.id);
+        }, 15 * 60 * 1000); // 15 minutes
+        
+        setPlanningTasks(prev => prev.map(t => 
+          t.id === taskId && t.reminder ? 
+            { ...t, reminder: { ...t.reminder, timeoutId } } : 
+            t
+        ));
+      }
+    };
+
+    window.addEventListener('notificationTaskComplete', handleTaskComplete as EventListener);
+    window.addEventListener('notificationSnooze', handleSnooze as EventListener);
+
+    return () => {
+      window.removeEventListener('notificationTaskComplete', handleTaskComplete as EventListener);
+      window.removeEventListener('notificationSnooze', handleSnooze as EventListener);
+    };
+  }, [planningTasks, handleAddTask, handleDeletePlanningTask]);
+
+  /**
+   * Handle the addition of a new planning task.
+   */
+  const handleAddPlanningTask = async (name: string, reminder?: TaskReminder) => {
+    const newPlanningTask: PlanningTask = {
+      id: generateId(),
+      name,
+      priority: 'low', // Default to low priority
+      createdAt: new Date(),
+      reminder,
+    };
+
+    // If reminder is enabled, check permission and show custom prompt if needed
+    if (reminder?.enabled) {
+      const permissionResult = await NotificationService.requestPermission();
+      
+      if (permissionResult.granted) {
+        const timeoutId = scheduleReminder(newPlanningTask);
+        if (timeoutId && newPlanningTask.reminder) {
+          newPlanningTask.reminder.timeoutId = timeoutId;
+        }
+      } else if (permissionResult.showCustomPrompt) {
+        // Show custom permission prompt
+        setPendingTaskForNotification(name);
+        setShowNotificationPrompt(true);
+        // Continue adding task but disable reminder for now
+        if (newPlanningTask.reminder) {
+          newPlanningTask.reminder.enabled = false;
+        }
+      } else {
+        // Permission denied, disable the reminder
+        if (newPlanningTask.reminder) {
+          newPlanningTask.reminder.enabled = false;
+        }
+      }
+    }
+
+    setPlanningTasks((prev: PlanningTask[]) => [...prev, newPlanningTask]);
+  };
+
+  /**
+   * Handle updating a planning task's priority (for drag and drop).
+   */
+  const handleUpdatePlanningTaskPriority = (taskId: string, newPriority: Priority) => {
+    setPlanningTasks((prev: PlanningTask[]) =>
+      prev.map((task) =>
+        task.id === taskId ? { ...task, priority: newPriority } : task
+      )
+    );
+  };
+
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-start py-10 px-4 bg-gradient-to-b from-green-100 via-blue-100 to-purple-200 overflow-hidden">
       {/* D3-powered animated background */}
       <BackgroundAnimation />
+      
+      {/* Notification Permission Prompt */}
+      <NotificationPermissionPrompt
+        isOpen={showNotificationPrompt}
+        onClose={() => {
+          setShowNotificationPrompt(false);
+          setPendingTaskForNotification(null);
+        }}
+        onPermissionGranted={() => {
+          // Re-enable reminders for tasks and possibly reschedule
+          if (pendingTaskForNotification) {
+            console.log('Permission granted for task:', pendingTaskForNotification);
+          }
+        }}
+        taskName={pendingTaskForNotification || undefined}
+      />
+      
       {/* Main content wrapper to ensure proper stacking context */}
       <div className="relative z-10 w-full max-w-6xl">
         <h1 className="text-3xl font-extrabold text-center text-green-800 mb-6 drop-shadow">
