@@ -3,32 +3,35 @@ import React from 'react';
 export interface AchievementBadgeProps {
   /** Total points accumulated across all tasks */
   totalPoints: number;
+  /** Points earned today */
+  todayPoints: number;
   /** Number of consecutive days with at least one task */
   streak: number;
 }
 
 /**
- * Determine which badge label to show based on the total money earned.
+ * Determine which daily badge label to show based on points earned today.
  * Returns null if no badge threshold has been reached.
  */
-function getBadgeLabel(points: number): string | null {
-  if (points >= 100) return 'Gold';
-  if (points >= 50) return 'Silver';
-  if (points >= 20) return 'Bronze';
+function getDailyBadgeLabel(points: number): string | null {
+  if (points >= 30) return 'Amazing Day';
+  if (points >= 20) return 'Great Day';
+  if (points >= 10) return 'Good Day';
   return null;
 }
 
 /**
- * AchievementBadge shows a small visual indicator of a user's progress
- * in the form of a badge for earning milestones and a streak counter.
+ * AchievementBadge shows daily progress badges and streak tracking.
+ * Daily badges reset each day based on today's points, while streaks
+ * track consecutive days with completed tasks.
  */
-const AchievementBadge: React.FC<AchievementBadgeProps> = ({ totalPoints, streak }) => {
-  const badge = getBadgeLabel(totalPoints);
+const AchievementBadge: React.FC<AchievementBadgeProps> = ({ todayPoints, streak }) => {
+  const dailyBadge = getDailyBadgeLabel(todayPoints);
   return (
     <div className="flex space-x-2 mt-2">
-      {badge && (
-        <span className="bg-yellow-200 text-yellow-800 text-xs font-semibold px-2 py-1 rounded-full">
-          {badge} Badge
+      {dailyBadge && (
+        <span className="bg-blue-200 text-blue-800 text-xs font-semibold px-2 py-1 rounded-full">
+          🌟 {dailyBadge}
         </span>
       )}
       {streak > 1 && (

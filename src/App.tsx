@@ -321,10 +321,17 @@ const App: React.FC = () => {
 
         {/* Tab Content */}
         {activeTab === 'tasks' ? (
-          <div className="w-full max-w-xl mx-auto">
-            <AddTask onAdd={handleAddTask} planningTasks={planningTasks} />
-            <TaskList tasks={tasks} />
-            <ProgressChart tasks={tasks} />
+          <div className="w-full flex flex-col lg:flex-row gap-6 max-w-6xl mx-auto">
+            {/* Left side - Weekly Progress Chart */}
+            <div className="lg:w-1/3">
+              <ProgressChart tasks={tasks} />
+            </div>
+            
+            {/* Right side - Task Management */}
+            <div className="lg:w-2/3 max-w-xl mx-auto lg:mx-0">
+              <AddTask onAdd={handleAddTask} planningTasks={planningTasks} />
+              <TaskList tasks={tasks} />
+            </div>
           </div>
         ) : (
           <PlanningTab

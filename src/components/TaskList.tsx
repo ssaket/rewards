@@ -44,6 +44,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks }) => {
   };
   const streak = calculateStreak();
 
+
   return (
     <div className="w-full max-w-md mt-6 mx-auto space-y-4">
       <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow-md p-4 flex justify-between items-center">
@@ -56,7 +57,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks }) => {
           <p className="text-2xl font-bold text-green-700">{totalPointsToday}</p>
         </div>
       </div>
-      <AchievementBadge totalPoints={totalPoints} streak={streak} />
+      <AchievementBadge totalPoints={totalPoints} todayPoints={totalPointsToday} streak={streak} />
       <ul className="space-y-2">
         {tasksToday
           .slice()

@@ -80,7 +80,7 @@ const ProgressChart: React.FC<ProgressChartProps> = ({ tasks }) => {
   }, [tasks]);
 
   return (
-    <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow-md p-4 mt-6">
+    <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow-md p-4">
       <h2 className="text-lg font-semibold text-gray-700 mb-2">
         Points Earned This Week
       </h2>
