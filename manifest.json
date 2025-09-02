@@ -1,0 +1,46 @@
+{
+  "name": "FlowState Task Management",
+  "short_name": "FlowState",
+  "description": "Gamified task management app for achieving flow state",
+  "start_url": "/rewards/",
+  "scope": "/rewards/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/rewards/icons/notification-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/rewards/icons/notification-badge.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "badge"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Add Task",
+      "short_name": "Add Task",
+      "description": "Quickly add a new task",
+      "url": "/rewards/?action=add_task",
+      "icons": [
+        {
+          "src": "/rewards/icons/check-icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "lang": "en",
+  "dir": "ltr"
+}
