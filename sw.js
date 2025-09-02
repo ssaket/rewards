@@ -1,56 +1,31 @@
 /**
- * Service Worker for FlowState Task Management App
- * Handles background notifications, push messages, and offline functionality
+ * Minimal Service Worker for FlowState - Notifications Only
+ * This service worker ONLY handles notifications and does not interfere with resource fetching
  */
 
-const CACHE_NAME = "flowstate-v1";
 const NOTIFICATION_CACHE_NAME = "flowstate-notifications-v1";
 
-// Cache essential app resources
-const CACHE_URLS = [
-  "/rewards/",
-  "/rewards/index.html",
-  "/rewards/icons/notification-icon.svg",
-  "/rewards/icons/notification-badge.svg",
-  "/rewards/icons/celebration-icon.svg",
-  "/rewards/icons/achievement-icon.svg",
-  "/rewards/icons/check-icon.svg",
-  "/rewards/icons/snooze-icon.svg",
-];
-
-// Install event - cache resources
+// Install event - minimal setup
 self.addEventListener("install", (event) => {
-  console.log("Service Worker: Install event");
-
-  event.waitUntil(
-    caches
-      .open(CACHE_NAME)
-      .then((cache) => {
-        console.log("Service Worker: Caching files");
-        return cache.addAll(CACHE_URLS);
-      })
-      .catch((error) => {
-        console.error("Service Worker: Cache error during install", error);
-      })
-  );
-
-  // Activate immediately
+  console.log("Notification Service Worker: Install event");
+  // Skip waiting to activate immediately
   self.skipWaiting();
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up old notification caches only
 self.addEventListener("activate", (event) => {
-  console.log("Service Worker: Activate event");
-
+  console.log("Notification Service Worker: Activate event");
+  
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
+          // Only delete old notification caches, leave other caches alone
           if (
-            cacheName !== CACHE_NAME &&
+            cacheName.startsWith("flowstate-notifications-") &&
             cacheName !== NOTIFICATION_CACHE_NAME
           ) {
-            console.log("Service Worker: Deleting old cache:", cacheName);
+            console.log("Service Worker: Deleting old notification cache:", cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -62,37 +37,8 @@ self.addEventListener("activate", (event) => {
   return self.clients.claim();
 });
 
-// Fetch event - serve from cache when offline
-self.addEventListener("fetch", (event) => {
-  // Only handle same-origin requests
-  if (!event.request.url.startsWith(self.location.origin)) {
-    return;
-  }
-
-  // Skip caching for CSS and JS assets - let browser handle them normally
-  if (
-    event.request.url.includes("/assets/") &&
-    (event.request.url.endsWith(".css") || event.request.url.endsWith(".js"))
-  ) {
-    return;
-  }
-
-  event.respondWith(
-    caches
-      .match(event.request)
-      .then((response) => {
-        // Return cached version or fetch from network
-        return response || fetch(event.request);
-      })
-      .catch((error) => {
-        console.error("Service Worker: Fetch error", error);
-        // For navigation requests, return a fallback page
-        if (event.request.destination === "document") {
-          return caches.match("/rewards/index.html");
-        }
-      })
-  );
-});
+// DO NOT handle fetch events - let the browser handle all resource loading normally
+// This prevents the service worker from interfering with app resources
 
 // Push event - handle push notifications
 self.addEventListener("push", (event) => {
@@ -125,7 +71,7 @@ self.addEventListener("push", (event) => {
       requireInteraction: notificationData.requireInteraction || false,
       actions: notificationData.actions || [],
       data: notificationData.data,
-      vibrate: [200, 100, 200], // Vibration pattern for mobile
+      vibrate: [200, 100, 200],
       timestamp: Date.now(),
     })
   );
@@ -252,22 +198,25 @@ async function handleNotificationAction(action, data, client) {
 
 // Schedule a snoozed notification
 async function scheduleSnoozeNotification(originalData, snoozeMinutes) {
-  // Store the snooze data
+  // Store the snooze data in notification cache
   const snoozeData = {
     ...originalData,
     snoozeTime: Date.now() + snoozeMinutes * 60 * 1000,
     isSnooze: true,
   };
 
-  // Use the Cache API to store the snooze data
-  const cache = await caches.open(NOTIFICATION_CACHE_NAME);
-  const snoozeKey = `snooze-${originalData.taskId}-${Date.now()}`;
-  const response = new Response(JSON.stringify(snoozeData));
-  await cache.put(snoozeKey, response);
+  try {
+    const cache = await caches.open(NOTIFICATION_CACHE_NAME);
+    const snoozeKey = `snooze-${originalData.taskId}-${Date.now()}`;
+    const response = new Response(JSON.stringify(snoozeData));
+    await cache.put(snoozeKey, response);
 
-  console.log(
-    `Service Worker: Scheduled snooze notification for ${snoozeMinutes} minutes`
-  );
+    console.log(
+      `Service Worker: Scheduled snooze notification for ${snoozeMinutes} minutes`
+    );
+  } catch (error) {
+    console.error("Service Worker: Error scheduling snooze:", error);
+  }
 }
 
 // Background sync for offline notifications
@@ -296,8 +245,8 @@ async function processBackgroundNotifications() {
             "📋 Task Reminder (Snoozed)",
             {
               body: `Time to work on: ${data.taskName}`,
-              icon: "/rewards/icons/notification-icon-256.png",
-              badge: "/rewards/icons/notification-badge-72.png",
+              icon: "/rewards/icons/notification-icon.svg",
+              badge: "/rewards/icons/notification-badge.svg",
               tag: `task-reminder-${data.taskId}`,
               renotify: true,
               actions: [
@@ -336,8 +285,8 @@ self.addEventListener("message", (event) => {
       event.waitUntil(
         self.registration.showNotification(data.title, {
           body: data.body,
-          icon: data.icon || "/rewards/icons/notification-icon-256.png",
-          badge: data.badge || "/rewards/icons/notification-badge-72.png",
+          icon: data.icon || "/rewards/icons/notification-icon.svg",
+          badge: data.badge || "/rewards/icons/notification-badge.svg",
           tag: data.tag || "app-notification",
           renotify: data.renotify || false,
           requireInteraction: data.requireInteraction || false,
@@ -377,15 +326,19 @@ self.addEventListener("message", (event) => {
 async function clearNotificationsWithTag(tag) {
   if (!tag) return;
 
-  const notifications = await self.registration.getNotifications({ tag });
-  notifications.forEach((notification) => notification.close());
+  try {
+    const notifications = await self.registration.getNotifications({ tag });
+    notifications.forEach((notification) => notification.close());
 
-  console.log(
-    `Service Worker: Cleared ${notifications.length} notifications with tag: ${tag}`
-  );
+    console.log(
+      `Service Worker: Cleared ${notifications.length} notifications with tag: ${tag}`
+    );
+  } catch (error) {
+    console.error("Service Worker: Error clearing notifications:", error);
+  }
 }
 
 // Periodic check for snoozed notifications (fallback)
 setInterval(processBackgroundNotifications, 60000); // Check every minute
 
-console.log("Service Worker: Loaded and ready");
+console.log("Notification Service Worker: Loaded and ready (fetch events disabled)");
