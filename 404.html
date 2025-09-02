@@ -9,12 +9,15 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- The CSS import is handled by Vite in src/main.tsx -->
-    <script type="module" crossorigin src="/rewards/assets/index-f687aa2c.js"></script>
-    <link rel="stylesheet" href="/rewards/assets/index-1c8d9c87.css">
+    <script type="text/javascript">
+      // Handle client-side routing for GitHub Pages
+      // Store the current path and redirect to index.html
+      sessionStorage.redirect = location.href;
+    </script>
+    <meta http-equiv="refresh" content="0;URL='/rewards/'"></meta>
   </head>
   <body class="min-h-screen m-0 p-0">
     <div id="root"></div>
-    
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
